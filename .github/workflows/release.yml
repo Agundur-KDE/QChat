@@ -74,7 +74,7 @@ jobs:
           flatpak-builder --user --force-clean --disable-rofiles-fuse \
             --repo=flatpak-repo flatpak-build org.qchat.QChat.yml
           flatpak build-bundle flatpak-repo "QChat-${TAG}-linux-x86_64.flatpak" \
-            org.qchat.QChat "${TAG#v}"
+            org.qchat.QChat master
 
       - name: Publish GitHub release
         env:
