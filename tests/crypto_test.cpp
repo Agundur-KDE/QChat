@@ -90,6 +90,13 @@ private slots:
     auto encrypted = alice.seal("private", b, a);
     QVERIFY_EXCEPTION_THROWN(mallory.open(encrypted), CryptoError);
   }
+  void encryptedLocalDataRoundTrip() {
+    Crypto alice(aliceDir.path());
+    const auto cipher = alice.encrypt("private contact metadata", a);
+    QVERIFY(cipher.startsWith("-----BEGIN PGP MESSAGE-----"));
+    QVERIFY(!cipher.contains("private contact metadata"));
+    QCOMPARE(alice.decrypt(cipher), QByteArray("private contact metadata"));
+  }
   void corruptedCiphertext() {
     Crypto alice(aliceDir.path()), bob(bobDir.path());
     auto encrypted = alice.seal("private", b, a);

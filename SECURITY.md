@@ -28,9 +28,11 @@ importing into the persistent keyring. Size limits restrict input and output.
 
 ## At-rest exposure
 
-Public keys, contact names, fingerprints and verification state remain on disk.
-They are not encrypted by QChat. GnuPG's own private-key files are passphrase
-protected. A UI lock is not a cryptographic container for contact metadata.
+Public keys remain on disk. Contact names, fingerprints and verification state
+are stored in `contacts.json` as an OpenPGP message encrypted to the local
+identity and loaded only after unlocking. The file name, existence and size
+remain visible metadata. GnuPG's own private-key files are passphrase protected.
+A UI lock is not a full disk encryption boundary.
 Full-disk encryption configured before sensitive use is strongly relevant.
 
 QChat does not intentionally persist message plaintext, draft text or history.
@@ -59,8 +61,8 @@ machine. Enforcement and cache behavior require testing on each target platform.
 - No forward secrecy: later compromise of a usable private key can expose recorded
   traffic. A local purge cannot revoke copies on other systems.
 - No defense against root, malware, physical coercion or already unlocked devices.
-- No authenticated encrypted local metadata store. Local file modification can
-  change verification state; filesystem permissions do not stop a same-user attacker.
+- No rollback protection for the encrypted local metadata store: an attacker
+  with write access can delete it or restore an older valid ciphertext.
 - No certified secure deletion or plausible-deniability claim.
 - No backup/restore, renewal or revocation UI; identity expiry is one year.
 - No encrypted first-contact card workflow yet; exchange public contact cards and

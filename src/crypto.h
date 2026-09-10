@@ -29,6 +29,8 @@ public:
   QString importCard(const QByteArray &card) const;
   QByteArray seal(const QByteArray &text, const QString &recipient,
                   const QString &sender) const;
+  QByteArray encrypt(const QByteArray &text, const QString &recipient) const;
+  QByteArray decrypt(const QByteArray &cipher) const;
   Opened open(const QByteArray &cipher) const;
   void authenticate(const QString &fingerprint) const;
   bool clearAgent() const;

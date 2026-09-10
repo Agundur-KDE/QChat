@@ -155,15 +155,18 @@ void Window::build() {
   contactsBox_->setMinimumWidth(200);
   contactRow->addWidget(contactsBox_, 1);
   auto *add = button(tr("Add contact"));
+  auto *remove = button(tr("Delete contact"));
   auto *verify = button(tr("Check contact"));
   auto *share = button(tr("My contact card"));
   contactRow->addWidget(add);
+  contactRow->addWidget(remove);
   contactRow->addWidget(verify);
   contactRow->addWidget(share);
   wl->addLayout(contactRow);
   recipientInfo_ = label("");
   wl->addWidget(recipientInfo_);
   connect(add, &QPushButton::clicked, this, &Window::addContact);
+  connect(remove, &QPushButton::clicked, this, &Window::removeContact);
   connect(verify, &QPushButton::clicked, this, &Window::verifyContact);
   connect(share, &QPushButton::clicked, this, &Window::shareCard);
   connect(contactsBox_, &QComboBox::currentIndexChanged, this, [this] {
@@ -408,8 +411,18 @@ void Window::loadContacts() {
     status_->setText(tr("Contacts could not be loaded."));
     return;
   }
+  const auto stored = file.readAll();
+  QByteArray clear;
+  try {
+    clear = stored.startsWith("-----BEGIN PGP MESSAGE-----")
+                ? crypto_.decrypt(stored)
+                : stored; // One-time migration for pre-encryption installs.
+  } catch (const CryptoError &) {
+    status_->setText(tr("Contacts could not be loaded."));
+    return;
+  }
   QJsonParseError e;
-  auto doc = QJsonDocument::fromJson(file.readAll(), &e);
+  auto doc = QJsonDocument::fromJson(clear, &e);
   if (e.error != QJsonParseError::NoError || !doc.isArray()) {
     status_->setText(tr("Contacts could not be loaded."));
     return;
@@ -425,6 +438,8 @@ void Window::loadContacts() {
     contacts_.push_back(
         {o["name"].toString().left(80), fp, o["verified"].toBool(false)});
   }
+  if (!stored.startsWith("-----BEGIN PGP MESSAGE-----"))
+    saveContacts();
 }
 bool Window::saveContacts() {
   QJsonArray a;
@@ -436,8 +451,31 @@ bool Window::saveContacts() {
   if (!file.open(QIODevice::WriteOnly))
     return false;
   file.setPermissions(QFile::ReadOwner | QFile::WriteOwner);
-  auto data = QJsonDocument(a).toJson();
+  QByteArray data;
+  try {
+    data = crypto_.encrypt(QJsonDocument(a).toJson(), own_);
+  } catch (const CryptoError &) {
+    return false;
+  }
   return file.write(data) == data.size() && file.commit();
+}
+void Window::removeContact() {
+  const int i = contactsBox_->currentIndex();
+  if (i < 0 || i >= contacts_.size() || locked_)
+    return;
+  const auto contact = contacts_[i];
+  if (QMessageBox::question(this, tr("Delete contact"),
+                            tr("Delete contact '%1'?").arg(contact.name)) !=
+      QMessageBox::Yes)
+    return;
+  contacts_.removeAt(i);
+  if (!saveContacts()) {
+    contacts_.insert(i, contact);
+    status_->setText(tr("Contact could not be saved."));
+    return;
+  }
+  refreshContacts();
+  status_->setText(tr("Contact deleted."));
 }
 void Window::refreshContacts() {
   int i = contactsBox_->currentIndex();

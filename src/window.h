@@ -60,6 +60,7 @@ private:
   bool saveContacts();
   void refreshContacts();
   void addContact();
+  void removeContact();
   void verifyContact();
   void shareCard();
   void seal();

@@ -198,6 +198,29 @@ QByteArray Crypto::seal(const QByteArray &text, const QString &recipient,
                               out.p));
   return out.bytes();
 }
+QByteArray Crypto::encrypt(const QByteArray &text, const QString &recipient) const {
+  limit(text);
+  Context c(home_);
+  Key r;
+  check(gpgme_get_key(c.p, recipient.toLatin1().constData(), &r.p, 0));
+  if (!usable(r.p))
+    throw CryptoError("Recipient cannot be used");
+  gpgme_key_t recipients[] = {r.p, nullptr};
+  Data in(text), out;
+  check(gpgme_op_encrypt(c.p, recipients, GPGME_ENCRYPT_ALWAYS_TRUST, in.p,
+                         out.p));
+  return out.bytes();
+}
+QByteArray Crypto::decrypt(const QByteArray &cipher) const {
+  limit(cipher, 2 * 1024 * 1024);
+  Context c(home_);
+  Data in(cipher), out;
+  check(gpgme_op_decrypt(c.p, in.p, out.p));
+  auto d = gpgme_op_decrypt_result(c.p);
+  if (!d || d->legacy_cipher_nomdc)
+    throw CryptoError("Unauthenticated legacy encryption rejected");
+  return out.bytes();
+}
 Opened Crypto::open(const QByteArray &cipher) const {
   limit(cipher, 2 * 1024 * 1024);
   Context c(home_);

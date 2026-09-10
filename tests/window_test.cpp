@@ -121,6 +121,9 @@ private slots:
     window->loadContacts();
     QCOMPARE(window->contacts_.size(), 1);
     QVERIFY(!window->contacts_[0].verified);
+    QFile raw(window->path_ + "/contacts.json");
+    QVERIFY(raw.open(QIODevice::ReadOnly));
+    QVERIFY(!raw.readAll().contains("Bob"));
   }
   void languageLayouts() {
     for (const QString language : {QString("de"), QString("fa")}) {

@@ -38,13 +38,15 @@ und wird nach einem Neustart angewendet.
    Auch die eigene Identität wird als Empfänger eingetragen, um die gesendete
    verschlüsselte Kopie später lesen zu können.
 6. Zum Lesen den gesamten Block auf **Lesen** einfügen und **Nachricht
-   entschlüsseln** wählen. Inhalte werden nur bei gültiger Signatur einer
-   geprüften Kontaktkarte oder der eigenen Identität angezeigt. Der gewählte
-   Kontakt im Schreibbereich bestimmt **nicht** den erkannten Absender.
+   entschlüsseln** wählen. Entschlüsselter Inhalt wird angezeigt; eine gültige
+   Signatur einer geprüften Kontaktkarte wird zusätzlich als authentifiziert
+   markiert. Der gewählte Kontakt im Schreibbereich bestimmt **nicht** den
+   erkannten Absender.
 
 QChat verlangt GnuPG-Passphrasen gegebenenfalls mehrmals: beim Öffnen der App,
 Signieren und Entschlüsseln. Der Agent darf nur sehr kurz zwischenspeichern.
-Die Kontakte werden lokal gespeichert; Klartexte werden von der App nicht auf
+Die Kontakte werden lokal als OpenPGP-Nachricht verschlüsselt gespeichert und
+erst nach dem Entsperren geladen. Klartexte werden von der App nicht auf
 Datenträger geschrieben. Editor/Qt/Betriebssystem können dennoch Speicherkopien
 halten. Die Zwischenablage kann externe Verlaufsmanager haben.
 
@@ -91,9 +93,8 @@ QChat nutzt `QStandardPaths::AppLocalDataLocation`, unter üblichen Linux-Einste
 
 - `gnupg/`: öffentliche Schlüssel, passphrasengeschützte private Schlüssel,
   GnuPG-Metadaten und lokale Konfiguration.
-- `contacts.json`: **unverschlüsselte** lokale Spitznamen, öffentliche
-  Fingerabdrücke und Prüfstatus. Laden erst nach Entsperrung verbirgt die Datei
-  nicht vor jemandem mit Datenträgerzugriff.
+- `contacts.json`: lokal verschlüsselte Spitznamen, öffentliche Fingerabdrücke
+  und Prüfstatus. Dateiname, Existenz und Größe bleiben als Metadaten sichtbar.
 - `preferences.ini`: Sprache; `qchat.lock`: Sperrdatei gegen parallele Instanzen.
 
 Verzeichnisrechte sind auf den eigenen Benutzer beschränkt. Dies ersetzt keine
