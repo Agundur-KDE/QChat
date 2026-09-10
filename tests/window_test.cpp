@@ -92,6 +92,13 @@ private slots:
                          lines.join("\r\n") + "\r\n```\r\n";
     QCOMPARE(Window::normalizeCiphertext(wrapped), message.trimmed());
   }
+  void pastedContactCardNormalization() {
+    const auto card = Crypto(bobDir.path() + "/gnupg").exportCard(b);
+    auto lines = QString::fromUtf8(card).split('\n');
+    for (auto &line : lines)
+      line.prepend("   ");
+    QCOMPARE(Window::normalizeCiphertext(lines.join("\r\n")), card.trimmed());
+  }
   void lockDiscardsPendingResult() {
     bool callback = false;
     window->job(

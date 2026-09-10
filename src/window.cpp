@@ -482,7 +482,7 @@ void Window::addContact() {
   if (dialog.exec() != QDialog::Accepted || locked_)
     return;
   const auto alias = name->text().trimmed();
-  const auto bytes = card->toPlainText().toUtf8();
+  const auto bytes = normalizeCiphertext(card->toPlainText());
   if (alias.isEmpty() || bytes.size() > maxInput)
     return;
   auto crypto = crypto_;
