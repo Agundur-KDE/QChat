@@ -81,9 +81,23 @@ ctest --test-dir build --output-on-failure
 
 The exact Ubuntu/Trisquel version has **not** been tested here. Native testing
 was done with Qt 6.11.2, GPGME 2.2.0, and GnuPG 2.5.22 on openSUSE. The binary
-built here is not a distribution package. No Flatpak has been created yet:
-GnuPG/Pinentry, the dedicated agent, and optional system interfaces need their
-own integration and testing there.
+built here is not a distribution package. GnuPG/Pinentry, the dedicated agent,
+and optional system interfaces still need their own integration and testing in
+the experimental Flatpak.
+
+## Beta releases
+
+Pushing a tag matching `v*` starts the GitHub Actions beta-release workflow. It
+runs the build and test suite and publishes three Linux artifacts to a private
+GitHub release:
+
+- `.tgz`: a compressed directory bundle containing the QChat binary and desktop
+  entry;
+- `.bin`: a self-extracting form of the same bundle;
+- `.flatpak`: an experimental Flatpak bundle.
+
+The Flatpak is a packaging experiment and has not replaced native testing of
+GnuPG, Pinentry, the dedicated agent, or the optional system interfaces.
 
 ## Data and limitations
 

@@ -1,0 +1,86 @@
+name: Beta release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build Linux release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools libgpgme-dev \
+            libudev-dev gnupg pinentry-qt flatpak flatpak-builder
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Prepare binary bundle
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          version="${TAG#v}"
+          name="QChat-${TAG}-linux-x86_64"
+          mkdir -p "dist/${name}/usr/bin" "dist/${name}/usr/share/applications"
+          install -m 0755 build/qchat "dist/${name}/usr/bin/qchat"
+          install -m 0644 packaging/org.qchat.QChat.desktop \
+            "dist/${name}/usr/share/applications/org.qchat.QChat.desktop"
+          tar -C dist -czf "dist/${name}.tgz" "${name}"
+          cat > "dist/${name}.bin" <<'SCRIPT'
+          #!/bin/sh
+          set -eu
+          target="${1:-./QChat-__VERSION__}"
+          mkdir -p "$target"
+          line=$(awk '/^__QCHAT_PAYLOAD_BELOW__$/ { print NR + 1; exit }' "$0")
+          tail -n +"$line" "$0" | tar -xz -C "$target" --strip-components=1
+          printf 'QChat extracted to %s\n' "$target"
+          exit 0
+          __QCHAT_PAYLOAD_BELOW__
+          SCRIPT
+          sed -i "s/__VERSION__/${version}/g" "dist/${name}.bin"
+          tar -C dist -czf - "${name}" >> "dist/${name}.bin"
+          chmod 0755 "dist/${name}.bin"
+          rm -rf "dist/${name}"
+
+      - name: Build Flatpak bundle
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          flatpak remote-add --if-not-exists --user flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive -y flathub \
+            org.kde.Platform//6.8 org.kde.Sdk//6.8
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build org.qchat.QChat.yml
+          flatpak build-bundle flatpak-repo "QChat-${TAG}-linux-x86_64.flatpak" \
+            org.qchat.QChat "${TAG#v}"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/*.tgz dist/*.bin \
+            "QChat-${TAG}-linux-x86_64.flatpak" \
+            --title "QChat ${TAG}" --prerelease --generate-notes
