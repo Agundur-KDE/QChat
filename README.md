@@ -1,75 +1,74 @@
 # QChat
 
-Lokale Qt-6-Anwendung zum Ver- und Entschlüsseln kurzer Textnachrichten mit OpenPGP.
-**Kein Transport, kein Server, kein Benutzerkonto, kein Nachrichtenverlauf.**
+Local Qt 6 application for encrypting and decrypting short text messages with OpenPGP.
+**No transport, no server, no user account, no message history.**
 
-Status: funktionsfähiger experimenteller Prototyp, **nicht unabhängig sicherheitsgeprüft**.
-Nicht als geprüften Schutz gegen staatliche Gerätebeschlagnahme einsetzen.
+Status: working experimental prototype, **not independently security audited**.
+Do not rely on it as protection against state seizure of devices.
 
-## Starten
+## Running
 
-Auf dem Entwicklungsrechner:
+On the development machine:
 
 ```sh
-/home/alec/projects/QChat/build/qchat --language de
+/home/alec/projects/QChat/build/qchat --language en
 ```
 
-Sprache: `en`, `de` oder `fa`. Persisch ist ein vollständiger **Übersetzungsentwurf**,
-der vor sensibler Nutzung von einem Muttersprachler geprüft werden muss. Die
-Oberfläche wird bei Farsi von rechts nach links aufgebaut; Prüfcodes und
-verschlüsselte Blöcke bleiben links nach rechts. Die Sprache ist oben wählbar
-und wird nach einem Neustart angewendet.
+Languages are `en`, `de`, and `fa`. Persian is a complete **translation draft**
+that must be reviewed by a native speaker before sensitive use. The Persian UI
+is laid out right to left; check codes and encrypted blocks remain left to right.
+Choose the language at the top of the window; it takes effect after restart.
 
-## Ablauf für zwei Personen
+## Workflow for two people
 
-1. Beide richten QChat ein. GnuPG fragt in einem separaten Pinentry-Fenster nach
-   einer Passphrase. Keine E-Mail-Adresse, kein Klarname nötig. Die Passphrase
-   schützt die private Identität; QChat selbst erhält sie nicht.
-2. Beide kopieren **Meine Kontaktkarte** und schicken sie über ihren vorhandenen
-   Kanal. Kontaktkarten sind öffentlich, können aber Kontakte zuordnen lassen.
-3. Unter **Kontakt hinzufügen** einen lokalen Spitznamen vergeben und die Karte
-   einfügen. Eine Kontaktkarte enthält ausschließlich den öffentlichen Schlüssel.
-4. Unter **Kontakt prüfen** den vollständigen Prüfcode unabhängig vergleichen,
-   z. B. über eine bereits authentisch bekannte HTTPS-Website. Beide Seiten
-   müssen ihre jeweilige Zuordnung prüfen. Der gleiche ungesicherte Chat allein
-   ist kein unabhängiger Prüfweg. Ein Häkchen ersetzt die tatsächliche Prüfung nicht.
-5. Kontakt wählen, Text schreiben, **Nachricht verschlüsseln**, verschlüsselten
-   Block kopieren und im bisherigen Kanal versenden. QChat signiert automatisch.
-   Auch die eigene Identität wird als Empfänger eingetragen, um die gesendete
-   verschlüsselte Kopie später lesen zu können.
-6. Zum Lesen den gesamten Block auf **Lesen** einfügen und **Nachricht
-   entschlüsseln** wählen. Entschlüsselter Inhalt wird angezeigt; eine gültige
-   Signatur einer geprüften Kontaktkarte wird zusätzlich als authentifiziert
-   markiert. Der gewählte Kontakt im Schreibbereich bestimmt **nicht** den
-   erkannten Absender.
+1. Both people set up QChat. GnuPG asks for a passphrase in a separate Pinentry
+   window. No email address or real name is required. The passphrase protects the
+   private identity; QChat itself never receives it.
+2. Both copy **My contact card** and send it through their existing channel.
+   Contact cards are public, but they can reveal contact relationships.
+3. Use **Add contact** to choose a local nickname and paste the card. A contact
+   card contains only the public key.
+4. Use **Check contact** to compare the complete check code through an
+   independent route, such as an HTTPS website that is already authenticated.
+   Both sides must check their respective association. The same unprotected chat
+   alone is not an independent verification route. A check mark does not replace
+   the actual comparison.
+5. Choose a contact, write the text, select **Encrypt message**, copy the
+   encrypted block, and send it through the existing channel. QChat signs it
+   automatically. Your own identity is also included as a recipient so you can
+   read the encrypted copy later.
+6. To read a message, paste the complete block into **Read** and select
+   **Decrypt message**. Decrypted content is shown; a valid signature from a
+   checked contact is additionally marked as authenticated. The selected contact
+   in the writing view does **not** determine the detected sender.
 
-QChat verlangt GnuPG-Passphrasen gegebenenfalls mehrmals: beim Öffnen der App,
-Signieren und Entschlüsseln. Der Agent darf nur sehr kurz zwischenspeichern.
-Die Kontakte werden lokal als OpenPGP-Nachricht verschlüsselt gespeichert und
-erst nach dem Entsperren geladen. Klartexte werden von der App nicht auf
-Datenträger geschrieben. Editor/Qt/Betriebssystem können dennoch Speicherkopien
-halten. Die Zwischenablage kann externe Verlaufsmanager haben.
+QChat may request the GnuPG passphrase more than once: when opening the app,
+signing, and decrypting. The agent is configured to cache it only briefly.
+Contacts are stored locally as an OpenPGP message encrypted to the local identity
+and loaded only after unlocking. QChat does not write plaintext to disk, but Qt,
+the editor, and the operating system may still retain copies. Clipboard managers
+may keep external history.
 
-## Sperre
+## Locking
 
-- **Esc / Jetzt sperren** leert die Anzeigen und beendet bestmöglich ausschließlich
-  den GnuPG-Agenten des eigenen QChat-Verzeichnisses.
-- Eine feste Sitzung endet nach **3 Minuten**, auch bei Mausbewegungen oder Tippen.
-  Ungesendete Texte gehen dabei verloren. Der Timer ist kein Inaktivitätstimer.
-- Ergebnisse laufender Vorgänge werden nach einer Sperre nicht mehr angezeigt.
-- Unter Linux lösen neue USB-Geräte bei verfügbarer udev-Überwachung eine Sperre
-  aus. Das ist nachträgliche Erkennung, **keine vorbeugende Gerätesperre**. Docks
-  und Neuverbindungen können ebenfalls sperren. Die Ereigniserkennung kann in
-  Sandboxes fehlen und schützt nicht gegen bereits vorhandene Eingabegeräte.
-- Übliche GNOME/MATE/freedesktop-Sperrsignale und logind-Ruhezustandsmeldungen
-  werden ebenfalls ausgewertet, soweit der Desktop sie anbietet.
-- Es gibt **keinen Löschknopf und keine Zusicherung forensischer Spurenfreiheit**.
-  Für eine vorbeugende USB-Gerätepolitik wäre separat USBGuard erforderlich.
+- **Esc / Lock now** clears the views and best-effort stops only the GnuPG agent
+  belonging to the QChat directory.
+- A fixed session ends after **3 minutes**, including while typing or moving the
+  mouse. Unsaved text is lost. This is not an inactivity timer.
+- Results from operations still running are discarded after locking.
+- On Linux, a new USB device triggers a lock when udev monitoring is available.
+  This is detection after connection, **not preventive device blocking**. Docks
+  and reconnects may also trigger it. Sandboxes may not provide the event, and it
+  does not protect against devices that were already present.
+- Standard GNOME/MATE/freedesktop lock signals and logind sleep notifications
+  are handled when the desktop provides them.
+- There is **no secure-delete button and no guarantee of forensic erasure**.
+  Preventive USB policy requires a separate tool such as USBGuard.
 
-## Bauen auf Ubuntu / Trisquel
+## Building on Ubuntu / Trisquel
 
-Benötigt Qt >= 6.2, CMake >= 3.21, GPGME, GnuPG 2.2+, grafisches Pinentry,
-libudev sowie einen C++17-Compiler. Bei Distributionen mit diesen Paketen:
+Requires Qt >= 6.2, CMake >= 3.21, GPGME, GnuPG 2.2+, graphical Pinentry,
+libudev, and a C++17 compiler. On distributions providing these packages:
 
 ```sh
 sudo apt install build-essential cmake pkg-config qt6-base-dev qt6-tools-dev \
@@ -80,37 +79,39 @@ ctest --test-dir build --output-on-failure
 ./build/qchat
 ```
 
-Die konkrete Ubuntu-/Trisquel-Version wurde hier noch **nicht** getestet.
-Getestet wurde nativ mit Qt 6.11.2, GPGME 2.2.0 und GnuPG 2.5.22 auf openSUSE.
-Die hier erzeugte Binärdatei ist kein distributionsübergreifendes Paket.
-Ein Flatpak ist noch nicht erstellt: GnuPG/Pinentry, eigener Agent und die
-optionalen Systemschnittstellen müssen dort eigens integriert und getestet werden.
+The exact Ubuntu/Trisquel version has **not** been tested here. Native testing
+was done with Qt 6.11.2, GPGME 2.2.0, and GnuPG 2.5.22 on openSUSE. The binary
+built here is not a distribution package. No Flatpak has been created yet:
+GnuPG/Pinentry, the dedicated agent, and optional system interfaces need their
+own integration and testing there.
 
-## Daten und Grenzen
+## Data and limitations
 
-QChat nutzt `QStandardPaths::AppLocalDataLocation`, unter üblichen Linux-Einstellungen
-`~/.local/share/QChat/QChat/`. Es verwendet **nicht** das normale `~/.gnupg`.
+QChat uses `QStandardPaths::AppLocalDataLocation`, which is usually
+`~/.local/share/QChat/QChat/` on Linux. It does **not** use the normal
+`~/.gnupg` directory.
 
-- `gnupg/`: öffentliche Schlüssel, passphrasengeschützte private Schlüssel,
-  GnuPG-Metadaten und lokale Konfiguration.
-- `contacts.json`: lokal verschlüsselte Spitznamen, öffentliche Fingerabdrücke
-  und Prüfstatus. Dateiname, Existenz und Größe bleiben als Metadaten sichtbar.
-- `preferences.ini`: Sprache; `qchat.lock`: Sperrdatei gegen parallele Instanzen.
+- `gnupg/`: public keys, passphrase-protected private keys, GnuPG metadata, and
+  local configuration.
+- `contacts.json`: locally encrypted nicknames, public fingerprints, and check
+  status. The filename, existence, and size remain visible metadata.
+- `preferences.ini`: language; `qchat.lock`: lock file preventing parallel
+  instances.
 
-Verzeichnisrechte sind auf den eigenen Benutzer beschränkt. Dies ersetzt keine
-Datenträgerverschlüsselung. Siehe [SECURITY.md](SECURITY.md) für das Bedrohungsmodell.
+Directory permissions are restricted to the current user. This is not a
+replacement for full-disk encryption. See [SECURITY.md](SECURITY.md) for the
+threat model.
 
-Kein automatisches Backup, kein Export privater Schlüssel, keine Schlüsselrotation
-oder Wiederherstellung in der Oberfläche. Verlust von Identität/Passphrase kann
-alte Nachrichten unlesbar machen. Erzeugte Identitäten laufen nach einem Jahr ab.
-Ein neuer Schlüssel wird als neue, ungeprüfte Kontaktkarte behandelt.
+There is no automatic backup, private-key export, key rotation, or restore UI.
+Losing the identity or its passphrase may make old messages unreadable. Created
+identities expire after one year. A new key is treated as a new, unchecked
+contact card.
 
-## Entwicklung und Tests
+## Development and tests
 
-Die Tests benutzen ausschließlich temporäre Wegwerf-Identitäten. Deren leere
-Passphrasen gehören zur Testumgebung und werden nicht zur normalen Einrichtung
-verwendet. GnuPG braucht lokale Agent-Sockets; stark eingeschränkte Sandboxes
-können die Tests verhindern.
+Tests use only temporary throwaway identities. Their empty passphrases belong to
+the test environment and are not used for normal setup. GnuPG needs local agent
+sockets; heavily restricted sandboxes may prevent the tests from running.
 
 ```sh
 QT_QPA_PLATFORM=offscreen QCHAT_TEST_ARTIFACTS="$PWD/artifacts" ./build/window_test
@@ -118,8 +119,8 @@ QT_QPA_PLATFORM=offscreen QCHAT_TEST_ARTIFACTS="$PWD/artifacts" ./build/window_t
 lupdate6 src -ts i18n/qchat_de.ts i18n/qchat_fa.ts
 ```
 
-Auf manchen Distributionen heißt das Übersetzungswerkzeug `lupdate` oder liegt
-unter `/usr/lib/qt6/bin/`. Die Tests decken kryptografischen Austausch, falsche
-Empfänger, beschädigte Nachrichten, fehlende/unbekannte Signaturen, verweigerte
-Privatschlüsselimporte, Kontaktprüfung, Sperren während laufender Vorgänge und
-Deutsch/Farsi-Darstellung ab. Sie ersetzen kein Sicherheitsaudit.
+On some distributions the translation tool is called `lupdate` or is located
+under `/usr/lib/qt6/bin/`. The tests cover cryptographic exchange, wrong
+recipients, corrupted messages, missing or unknown signatures, rejected private
+key imports, contact checking, locking during active operations, and German/
+Persian rendering. They are not a security audit.
