@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=QChat
+Comment=Encrypt and decrypt messages locally
+Comment[de]=Nachrichten lokal ver- und entschlüsseln
+Exec=qchat
+Terminal=false
+Categories=Utility;Security;
+StartupNotify=true
